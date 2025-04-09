@@ -1,0 +1,7 @@
+{
+    "fwd_primer": "acgccagatccg",
+    "rev_primer": "cgactcagaccgt",
+    "bbs1": ["GAAGACta", "atGTCTTC"],
+    "bsa1": "tGAGACCCGTCTCaGTCAGGTCTCa",
+    "bsmb1": "tGAGACGGGTCTCaTAATCGTCTCa"
+}
