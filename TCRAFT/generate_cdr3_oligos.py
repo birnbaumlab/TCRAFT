@@ -369,7 +369,7 @@ def main():
     parser = argparse.ArgumentParser(description='TCRAFT-generate: Generate CDR3 Oligos from TCR sequence annotation data.')
     parser.add_argument('input_csv', type=csv_file, help='Input CSV file with TCR information. Must contain the following columns: V_alpha, V_beta, CDR3_alpha, CDR3_beta, J_alpha, J_beta')
     date_str = pd.Timestamp.now().strftime('%Y%m%d')
-    parser.add_argument('--output_dir', type=str, help='Directory to save output files. Default is ./TCRAFT_output_<date>', default=f'./TCRAFT-generate_{date_str}')
+    parser.add_argument('--output_dir', type=str, help='Directory to save output files. Default is ./TCRAFT-generate_<date>', default=os.path.join(os.getcwd(), f"TCRAFT-generate_{date_str}"))
     args = parser.parse_args()
     tcr_list = pd.read_csv(args.input_csv)
 
@@ -425,7 +425,8 @@ def main():
             invalid_cdr3_oligo_list['Issue'].append(str(e))
 
     print(f'Generated {len(cdr3_oligo_list["Sequence"])} valid CDR3 oligos.')
-    print(f'Failed to generate {invalid_cdr3_num} CDR3 oligos, see log for details.')
+    if invalid_cdr3_num > 0:
+        print(f'Failed to generate {invalid_cdr3_num} CDR3 oligos, see log for details.')
 
     #POST-PROCESSING
     cdr3_oligo_list = pd.DataFrame(cdr3_oligo_list)

@@ -10,7 +10,7 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     package_data={
-        "TCRAFT": ['references/*'],
+        "TCRAFT.references": ['*'],
     },
     install_requires=parse_requirements("requirements.txt"),
     entry_points={
