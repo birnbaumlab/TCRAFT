@@ -163,7 +163,7 @@ def main():
     parser = argparse.ArgumentParser(description='TCRAFT-validate: Validate that TCRAFT CDR3 oligos are error-free and assemble via Golden Gate into the desired TCR sequence.')
     parser.add_argument('input_csv', type=csv_file, help='CSV file generated from TCRAFT-generate oligo script to validate')
     date_str = pd.Timestamp.now().strftime('%Y%m%d')
-    parser.add_argument('--output_dir', type=str, help='Directory to save output data. Default is ./TCRAFT_output_<date>', default=f'./TCRAFT_output_{date_str}')
+    parser.add_argument('--output_dir', type=str, help='Directory to save output data. Default is ./TCRAFT_output_<date>', default=f'./TCRAFT-validate_{date_str}')
     args = parser.parse_args()
     cdr3_oligos = pd.read_csv(args.input_csv)
 
@@ -256,6 +256,13 @@ def main():
     print('Completed assembly validation.')
     print(f'{correctly_assembled} out of {i+1} TCRs correctly assembled.')
     TCR_vectors = pd.DataFrame(TCR_vectors)
+
+    #SAVE OUTPUTS
+    print(f'Saving output files to {args.output_dir}')
+    try:
+        os.mkdir(args.output_dir)
+    except FileExistsError:
+        pass
     TCR_vectors.to_csv(os.path.join(args.output_dir, 'Reference_Assembled_TCR_Sequences.csv'), index=False)
 
     with open(os.path.join(args.output_dir, 'Assembly_Metadata.csv'), 'w') as out:

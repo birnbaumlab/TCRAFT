@@ -369,7 +369,7 @@ def main():
     parser = argparse.ArgumentParser(description='TCRAFT-generate: Generate CDR3 Oligos from TCR sequence annotation data.')
     parser.add_argument('input_csv', type=csv_file, help='Input CSV file with TCR information. Must contain the following columns: V_alpha, V_beta, CDR3_alpha, CDR3_beta, J_alpha, J_beta')
     date_str = pd.Timestamp.now().strftime('%Y%m%d')
-    parser.add_argument('--output_dir', type=str, help='Directory to save output files. Default is ./TCRAFT_output_<date>', default=f'./TCRAFT_output_{date_str}')
+    parser.add_argument('--output_dir', type=str, help='Directory to save output files. Default is ./TCRAFT_output_<date>', default=f'./TCRAFT-generate_{date_str}')
     args = parser.parse_args()
     tcr_list = pd.read_csv(args.input_csv)
 
@@ -442,7 +442,7 @@ def main():
     all_over300 = cdr3_oligo_list.loc[cdr3_oligo_list['Length'] > 300]
 
 
-    #save oligo sequences to csv files
+    #SAVE OUTPUTS
     print(f'Saving output files to {args.output_dir}')
     try:
         os.mkdir(args.output_dir)
