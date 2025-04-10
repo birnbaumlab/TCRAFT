@@ -55,10 +55,11 @@ Once installed, TCRAFT can be executed from the terminal using two simple comman
 
     Similar to above, the `--output_dir` flag is optional. If not specified the output files will be stored in `./TCRAFT-validate_<current date>`. 
 
-    `TCRAFT-validate` will simulate Golden Gate assembly of all inputted CDR3 oligos. If an oligo fails assembly validation, either due to presence of extraneous restriction sites or mismatch between the simulated and desired TCR protein sequence, the program will terminate and print the oligo/TCR that needs fixing.
+    `TCRAFT-validate` will simulate Golden Gate assembly of all inputted CDR3 oligos. If an oligo fails assembly validation, either due to presence of extraneous restriction sites or mismatch between the simulated and desired TCR protein sequence, the program will print the oligo/TCR that needs fixing. At the end, the program will output the percentage of inputted TCRs that passed assembly validation.
 
-    Otherwise, if all oligos assemble correctly, `TCRAFT-validate` creates the following output files in the output directory:
-    - `Reference_Assembled_TCR_Sequences.csv`: These are the full TCR sequences obtained after `TCRAFT-validate` simulated TCRAFT assembly of the CDR3 oligos into full TCR sequences. This reference list is sometimes useful to cross-check downstream experimental sequencing data against the ground-truth list of assembled sequences.
+    `TCRAFT-validate` creates the following output files in the output directory:
+    - `Reference_Assembled_TCR_Sequences.csv`: These are the full successfully validated TCR sequences obtained after `TCRAFT-validate` simulated TCRAFT assembly of the CDR3 oligos into full TCR sequences. This reference list is sometimes useful to cross-check downstream experimental sequencing data against the ground-truth list of assembled sequences.
+    - `Failed_Assemblies.csv`: Contains the TCRs that failed assembly validation along with info that is helpful for debugging the failures.
     - `Assembly_Metadata.csv`: Similar to the `Oligo_Pool_Metadata.csv` file, this table contains useful statistics for experimental planning and can also be directly pasted into the TCRAFT experiment planning workbook template.
 
 

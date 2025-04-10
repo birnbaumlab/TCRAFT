@@ -184,6 +184,7 @@ def main():
     step2a_lengths = []
     step2b_lengths = []
     TCR_vectors = []
+    failed_assemblies = []
 
     for i in tqdm(range(cdr3_oligos.shape[0])):
         params = cdr3_oligos.iloc[i, :]
@@ -195,11 +196,6 @@ def main():
         right_oh = trbv_trac_ohset['TRAC'].loc[trbv_trac_ohset['TRBV_name'] == params['TRBV']].values[0]
         step1_pool = trbv_trac_ohset['set'].loc[trbv_trac_ohset['TRBV_name'] == params['TRBV']].values[0]
         step1_vector = golden_gate_assembly(trbv_trac_vector, cdr3_oligo, BbsI.site, left_oh, right_oh, 2)
-        
-        if step1_pool == 'A':
-            step1a_lengths.append(len(step1_vector))
-        else:
-            step1b_lengths.append(len(step1_vector))
 
         #Step 2 - BsaI/BsmBI TRBC TRAV ligation
         trbc_trav_insert = trbc_trav_vectors['Sequence'].loc[trbc_trav_vectors['TRAV'] == params['TRAV']].values[0]
@@ -213,49 +209,70 @@ def main():
             rec_site = BsaI.site
 
         step2_vector = golden_gate_assembly(step1_vector, trbc_trav_insert, rec_site, left_oh, right_oh, 1)
-       
-        if step2_pool == 'A':
-            step2a_lengths.append(len(step2_vector))
-        else:
-            step2b_lengths.append(len(step2_vector))
-
         gg_tcr_assembly = str(Seq(step2_vector).translate())
 
-        #Validation: Build TCR from building blocks.
+        #Validation: Build Reference TCR from building blocks.
         trbv_seq = prepare_native_trbv_seq(params['TRBV'])
         trav_seq = prepare_native_trav_seq(params['TRAV'])
         TCRbeta = trbv_seq + params['CDR3B'][1:] + trj_seqs[params['TRBJ']] + trbc2_protein
         TCRalpha = trav_seq + params['CDR3A'][1:] + trj_seqs[params['TRAJ']] + trac_protein
         real_TCR_assembly = TCRbeta + p2a_protein + TCRalpha + '*' #add beta chain, P2A, alpha chain, and stop codon
 
+        assembly_success = True
+        issue = ""
         try:
             assert gg_tcr_assembly == real_TCR_assembly
         except AssertionError:
-            print('Assembly Failed for the following TCR:')
+            print(f'Assembly Failed for TCR # {i+1}:')
             print('Assembled TCR protein sequence:')
             print(gg_tcr_assembly)
             print('Desired TCR protein sequence:')
             print(real_TCR_assembly)
-            sys.exit(0)
+            assembly_success = False
+            issue += 'Mismatch with reference TCR sequence;'
 
         try:
             assert check_re_sites(step2_vector, all_re_sites)[0] == -1
         except AssertionError:
-            print('Extra restriction site found in the following TCR:')
+            print(f'Extra restriction site found for TCR # {i+1}:')
             print(step2_vector)
             print('Restriction Site Analysis:')
             print(check_re_sites(step2_vector, all_re_sites))
-            sys.exit(0)
+            assembly_success = False
+            issue += 'Extra restriction site found'
         
-        correctly_assembled += 1 #if no assertion errors, then the TCR was correctly assembled!
-        
-        TCR_vector_entry = params.copy()
-        TCR_vector_entry['Sequence'] = step2_vector
-        TCR_vectors.append(TCR_vector_entry)
-    
+        if assembly_success: #if no assertion errors, then the TCR was correctly assembled!
+            correctly_assembled += 1
+            TCR_vector_entry = params.copy()
+            TCR_vector_entry.drop('Sequence', inplace=True)
+            TCR_vector_entry['Full_TCR_Sequence'] = step2_vector
+            TCR_vectors.append(TCR_vector_entry)
+
+            if step1_pool == 'A':
+                step1a_lengths.append(len(step1_vector))
+            else:
+                step1b_lengths.append(len(step1_vector))
+
+            if step2_pool == 'A':
+                step2a_lengths.append(len(step2_vector))
+            else:
+                step2b_lengths.append(len(step2_vector))
+            
+        else:
+            TCR_vector_entry = params.copy()
+            TCR_vector_entry.drop('Sequence', inplace=True)
+            TCR_vector_entry['Issue'] = issue
+            TCR_vector_entry['Oligo_Sequence'] = cdr3_oligo
+            TCR_vector_entry['Assembled_TCR_protein'] = gg_tcr_assembly
+            TCR_vector_entry['Reference_TCR_protein'] = real_TCR_assembly
+            TCR_vector_entry['Assembled_TCR_Sequence'] = step2_vector
+            failed_assemblies.append(TCR_vector_entry)
+
     print('Completed assembly validation.')
     print(f'{correctly_assembled} out of {i+1} TCRs correctly assembled.')
+    
     TCR_vectors = pd.DataFrame(TCR_vectors)
+    failed_assemblies = pd.DataFrame(failed_assemblies)
 
     #SAVE OUTPUTS
     print(f'Saving output files to {args.output_dir}')
@@ -264,6 +281,8 @@ def main():
     except FileExistsError:
         pass
     TCR_vectors.to_csv(os.path.join(args.output_dir, 'Reference_Assembled_TCR_Sequences.csv'), index=False)
+    failed_assemblies.to_csv(os.path.join(args.output_dir, 'Failed_Assemblies.csv'), index=False)
+
 
     with open(os.path.join(args.output_dir, 'Assembly_Metadata.csv'), 'w') as out:
         out.write('Entry Name,Value\n')
