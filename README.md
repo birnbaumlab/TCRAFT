@@ -1,18 +1,18 @@
 # TCRAFT
- TCRAFT is a a scalable and cost-effective platform for pooled assembly of synthetic TCR libraries. This software package converts a table of user-inputted TCR sequences into CDR3 oligonucleotide pools to order for the TCRAFT assembly process. 
+TCRAFT is a a scalable and cost-effective platform for pooled assembly of synthetic TCR libraries. This software package converts a table of user-inputted TCR sequences into CDR3 oligonucleotide pools to order for the TCRAFT assembly process. 
 
 The TCRAFT package requires prior installation of Python 3.7 or higher as well as an updated version of pip.
 
 ## Installation
-### Quick Install from GitHub
+### Option 1: Quick Install from GitHub
 1. Open Terminal or Command Prompt on your machine.
 2. Enter the following command: `pip install git+https://github.com/birnbaumlab/TCRAFT.git`
 
-### Build the TCRAFT package locally
+### Option 2: Build the TCRAFT package locally
 1. Download or clone the TCRAFT git repository locally.
 2. In Terminal or Command Prompt, navigate to the base directory of the package (`/TCRAFT`) and execute the following command: `pip install .`
   
-### Install Dependencies Manually
+### Backup: Install Dependencies Manually
 By default, pip will automatically find and install all Python packages that are necessary for TCRAFT to run. In the event that dependency errors arise during installation, you can also manually install the requisite packages in your Python environment by running the following line in Terminal or Command Prompt:
 
 `pip install numpy pandas tqdm biopython`
