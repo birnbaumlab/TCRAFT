@@ -6,7 +6,7 @@ def parse_requirements(filename):
 
 setup(
     name="TCRAFT",
-    version="1.0.0",
+    version="1.1.0",
     packages=find_packages(),
     include_package_data=True,
     package_data={
@@ -15,8 +15,8 @@ setup(
     install_requires=parse_requirements("requirements.txt"),
     entry_points={
         "console_scripts": [
-            "TCRAFT-generate=TCRAFT.generate_cdr3_oligos:main",
-            "TCRAFT-validate=TCRAFT.validate_cdr3_oligos:main"
+            "TCRAFT-generate=TCRAFT.Generate:run_CLI",
+            "TCRAFT-validate=TCRAFT.Validate:run_CLI"
         ],
     },
     author="Rachit Mukkamala",

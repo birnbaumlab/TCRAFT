@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 #IMPORTS AND FILE LOADING
@@ -11,8 +11,8 @@ from Bio.Restriction import *
 import json
 from Bio.SeqUtils import gc_fraction
 from tqdm import tqdm
-import argparse
 import os
+import argparse
 import importlib.resources as pkg_resources
 
 """
@@ -356,42 +356,46 @@ def create_CDR3_oligo(trav_name, trbv_name, cdr3a, cdr3b, traj_name, trbj_name):
     return concatenate_oligo(oligo_frags), trbv_set #to split Step1 pools
 
 
-def main():
+def generate_cdr3_oligos(input_csv_path, output_dir=None):
     """
     Main function to generate CDR3 oligos from TCR information.
+    params:
+        input_csv_path: str, path to the input CSV file containing TCR information.
+        output_dir: str, path to the output directory to save generated oligos.
+                    Default is './TCRAFT-generate_<date>'
+    
+    return:
+        None, outputs files to the output directory.
     """
-    #PARSE INPUT ARGUMENTS
-    def csv_file(path):
-        if not path.lower().endswith('.csv'):
-            raise argparse.ArgumentTypeError("Input CSV must have a .csv extension")
-        return path
 
-    parser = argparse.ArgumentParser(description='TCRAFT-generate: Generate CDR3 Oligos from TCR sequence annotation data.')
-    parser.add_argument('input_csv', type=csv_file, help='Input CSV file with TCR information. Must contain the following columns: V_alpha, V_beta, CDR3_alpha, CDR3_beta, J_alpha, J_beta')
-    date_str = pd.Timestamp.now().strftime('%Y%m%d')
-    parser.add_argument('--output_dir', type=str, help='Directory to save output files. Default is ./TCRAFT-generate_<date>', default=os.path.join(os.getcwd(), f"TCRAFT-generate_{date_str}"))
-    args = parser.parse_args()
-    tcr_list = pd.read_csv(args.input_csv)
+    #PREPARE INPUTS
+    if not os.path.exists(input_csv_path):
+        raise FileNotFoundError(f'Input CSV file {input_csv_path} not found.')
+    
+    if not input_csv_path.endswith('.csv'):
+        raise ValueError('Input file must be a CSV file.')
+    
+    if output_dir is None:
+        date_str = pd.Timestamp.now().strftime('%Y%m%d')
+        output_dir = os.path.join(os.getcwd(), f"TCRAFT-generate_{date_str}")
 
-    #check if V_alpha, V_beta, CDR3_alpha, CDR3_beta, J_alpha, J_beta columns are present in tcr_list
+    tcr_list = pd.read_csv(input_csv_path)
+    
     required_columns = ['V_alpha', 'V_beta', 'CDR3_alpha', 'CDR3_beta', 'J_alpha', 'J_beta']
     for col in required_columns:
         if col not in tcr_list.columns:
             raise ValueError(f'Input CSV must contain the following columns: {", ".join(required_columns)}')
 
-    #subset tcr_list to only include required columns
     tcr_list = tcr_list[required_columns]
-
-    #drop rows with NA values
     tcr_list = tcr_list.dropna()
 
-    #MAIN LOOP - GENERATE CDR3 OLIGOS
     print('*******************')
     print('* TCRAFT-generate *')
     print('*******************')
     print()
     print('Generating CDR3 oligos...')
     
+    #MAIN LOOP - GENERATE CDR3 OLIGOS
     invalid_cdr3_num = 0
     cdr3_oligo_list = {'TRAV':[], 'TRBV':[], 'CDR3A':[], 'CDR3B':[], 'TRAJ':[], 'TRBJ':[], 'Length':[], 'GC':[], 'Pool':[], 'Sequence':[]}
     invalid_cdr3_oligo_list = {'TRAV':[], 'TRBV':[], 'CDR3A':[], 'CDR3B':[], 'TRAJ':[], 'TRBJ':[], 'Issue':[]}
@@ -444,25 +448,25 @@ def main():
 
 
     #SAVE OUTPUTS
-    print(f'Saving output files to {args.output_dir}')
+    print(f'Saving output files to {output_dir}')
     try:
-        os.mkdir(args.output_dir)
+        os.mkdir(output_dir)
     except FileExistsError:
         pass
     
-    cdr3_oligo_list.to_csv(os.path.join(args.output_dir, f'All_{cdr3_oligo_list.shape[0]}_CDR3_oligos.csv'), index=False)
-    invalid_cdr3_oligo_list.to_csv(os.path.join(args.output_dir, 'Invalid_CDR3_table.csv'), index=False)
+    cdr3_oligo_list.to_csv(os.path.join(output_dir, f'All_{cdr3_oligo_list.shape[0]}_CDR3_oligos.csv'), index=False)
+    invalid_cdr3_oligo_list.to_csv(os.path.join(output_dir, 'Invalid_CDR3_table.csv'), index=False)
     
-    all_under300.to_csv(os.path.join(args.output_dir, f'Under300_All_CDR3_oligos.csv'), index=False)
-    all_over300.to_csv(os.path.join(args.output_dir, f'Over300_All_CDR3_oligos.csv'), index=False)
+    all_under300.to_csv(os.path.join(output_dir, f'Under300_All_CDR3_oligos.csv'), index=False)
+    all_over300.to_csv(os.path.join(output_dir, f'Over300_All_CDR3_oligos.csv'), index=False)
 
-    poolA_under300.to_csv(os.path.join(args.output_dir, 'Under300_PoolA_CDR3_oligos.csv'), index=False)
-    poolB_under300.to_csv(os.path.join(args.output_dir, 'Under300_PoolB_CDR3_oligos.csv'), index=False)
-    poolA_over300.to_csv(os.path.join(args.output_dir, 'Over300_PoolA_CDR3_oligos.csv'), index=False)
-    poolB_over300.to_csv(os.path.join(args.output_dir, 'Over300_PoolB_CDR3_oligos.csv'), index=False)
+    poolA_under300.to_csv(os.path.join(output_dir, 'Under300_PoolA_CDR3_oligos.csv'), index=False)
+    poolB_under300.to_csv(os.path.join(output_dir, 'Under300_PoolB_CDR3_oligos.csv'), index=False)
+    poolA_over300.to_csv(os.path.join(output_dir, 'Over300_PoolA_CDR3_oligos.csv'), index=False)
+    poolB_over300.to_csv(os.path.join(output_dir, 'Over300_PoolB_CDR3_oligos.csv'), index=False)
 
     #save oligo pool metadata
-    with open(os.path.join(args.output_dir, 'Oligo_Pool_Metadata.csv'), 'w') as out:
+    with open(os.path.join(output_dir, 'Oligo_Pool_Metadata.csv'), 'w') as out:
         out.write('Entry Name,Value\n')
 
         out.write(f'Num Oligos: Pool A Under 300bp,{poolA_under300.shape[0]}\n')
@@ -475,7 +479,12 @@ def main():
         out.write(f'Avg Oligo Size: Pool A Over 300bp,{poolA_over300["Length"].mean()}\n')        
         out.write(f'Avg Oligo Size: Pool B Over 300bp,{poolB_over300["Length"].mean()}\n')
 
-
-if __name__ == "__main__":
-    main()
+def run_CLI():
+    parser = argparse.ArgumentParser(description='TCRAFT-generate: Generate CDR3 Oligos from TCR sequence annotation data.')
+    parser.add_argument('input_csv_path', type=str, help='Input CSV file with TCR information. Must contain the following columns: V_alpha, V_beta, CDR3_alpha, CDR3_beta, J_alpha, J_beta')
+    parser.add_argument('--output_dir', type=str, help='Directory to save output files. Default is ./TCRAFT-generate_<date>', default=None)
+    args = parser.parse_args()
+    generate_cdr3_oligos(args.input_csv_path, args.output_dir)
     
+if __name__ == "__main__":
+    run_CLI()
