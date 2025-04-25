@@ -67,7 +67,7 @@ The CSV table *must* contain the following columns or else TCRAFT-generate will 
     - `Under300_Pool<A or B>_CDR3_oligos.csv`: Split up the under 300bp oligos into pools that can be ordered together from an oligo pool supplier.
     - `Over300_Pool<A or B>_CDR3_oligos.csv`: Split up the oversize >300bp oligos into pools that can be ordered together from an oligo pool supplier.
     - `Oligo_Pool_Metadata.csv`: Table of oligo pool statistics which are helpful to plan out TCRAFT experimental protocols (ex: number of oligos per pool, average oligo size, etc.). This table can be directly pasted into the TCRAFT experiment planning workbook template to automatically compute resuspension volumes, mixing ratios, etc.
-    - `Invalid_TCR_Table.csv`: Contains TCRs that failed TCRAFT oligo generation. The most common reason for failure is due to specification of a V/J allele ID which is not supported by TCRAFT (TCRAFT only uses functional, coding alleles as annotated by IMGT).
+    - `Invalid_CDR3_Table.csv`: Contains TCRs that failed TCRAFT oligo generation. The most common reason for failure is due to specification of a V/J allele ID which is not supported by TCRAFT (TCRAFT only uses functional, coding alleles as annotated by IMGT).
 
 3. **Validate the CDR3 oligo pools by executing one of the following:**
 

@@ -135,7 +135,7 @@ def remove_restriction_sites(seq, aa, sites):
                 replace = option
 
         if iters >= 100 or replace is None:
-            raise ValueError(f'Note: Failed to remove restriction site. Seq = {seq}.')
+            raise ValueError(f'Note: Failed to remove restriction site. Seq = {seq}.\nThis usually happens due to a bad random seed choice and can often be resolved by rerunning the script.')
         
         seq = seq[:start*3] + replace + seq[(end+1)*3:]
         iters += 1
@@ -172,7 +172,7 @@ def remove_homopolymer_sites(seq, aa, sites):
                 replace = option
 
         if iters >= 100 or replace is None:
-            raise ValueError(f'Note: Failed to remove homopolymer. Seq = {seq}')
+            raise ValueError(f'Note: Failed to remove homopolymer. Seq = {seq}\nnThis usually happens due to a bad random seed choice and can often be resolved by rerunning the script.')
         
         seq = seq[:start*3] + replace + seq[(end+1)*3:]
         iters += 1
@@ -224,7 +224,7 @@ def generate_cleaned_DNA(aa_seq, freq_cutoff=0.15):
             tries += 1
             if tries > 50:
                 print(e)
-                raise ValueError('Note: Failed to generate cleaned DNA after 50 sampling attempts.')
+                raise ValueError('Note: Failed to generate cleaned DNA after 50 sampling attempts.\nThis usually happens due to a bad random seed choice and can often be resolved by rerunning the script.')
     
     return final_seq
 
@@ -348,7 +348,8 @@ def create_CDR3_oligo(trav_name, trbv_name, cdr3a, cdr3b, traj_name, trbj_name):
         oligo_frags['cdr3bj_seq'] = generate_cleaned_DNA(cdr3b[1:] + trbj).lower()
         resample_count += 1
         if resample_count > 50:
-            raise ValueError('Note: Failed to fix restriction sites in oligo junctions after 50 resampling attempts. Skipping this TCR.')
+            raise ValueError('Note: Failed to fix restriction sites in oligo junctions after 50 resampling attempts. Skipping this TCR for now.\n ' \
+            'This usually happens due to a bad random seed choice and can often be resolved by rerunning the script. ')
         
     if resample_count > 0:
         print(f'Resampled {resample_count} times to fix restriction site issue.')
