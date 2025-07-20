@@ -123,23 +123,20 @@ def remove_restriction_sites(seq, aa, sites):
     iters = 0
     while check_re_sites(seq, sites)[0] != -1:
         pos, site = check_re_sites(seq, sites)
-        start = pos // 3
-        end = (pos + len(site)) // 3
-        
+        start = max(0, pos // 3 - 2)
+        end = min((pos + len(site)) // 3 + 2, len(seq) // 3 - 1)       
+         
         replace = None
         for option in dfs_seq_builder(aa[start:end+1]):
-            start_minus_one = max(0, start-1)
-            end_plus_one = min(end+1, len(seq)//3 - 1)
-            option_with_context = seq[start_minus_one*3:start*3] + option + seq[end*3:end_plus_one*3]
-            if check_re_sites(option_with_context, sites)[0] == -1:
+            if check_re_sites(option, sites)[0] == -1:
                 replace = option
 
-        if iters >= 100 or replace is None:
+        if iters >= 15 or replace is None:
             raise ValueError(f'Note: Failed to remove restriction site. Seq = {seq}.\nThis usually happens due to a bad random seed choice and can often be resolved by rerunning the script.')
         
-        seq = seq[:start*3] + replace + seq[(end+1)*3:]
+        seq = seq[:start*3] + replace + seq[(end+1)*3:]  
         iters += 1
-        
+    
     assert Seq(seq).translate() == aa
     return seq
 
@@ -160,18 +157,15 @@ def remove_homopolymer_sites(seq, aa, sites):
     iters = 0
     while check_homopolymer_sites(seq)[0] != -1:
         pos, site = check_homopolymer_sites(seq)
-        start = pos // 3
-        end = (pos + len(site)) // 3
+        start = max(0, pos // 3 - 2)
+        end = min((pos + len(site)) // 3 + 2, len(seq) // 3 - 1)
         
         replace = None
         for option in dfs_seq_builder(aa[start:end+1]):
-            start_minus_one = max(0, start-1)
-            end_plus_one = min(end+1, len(seq)//3 - 1)
-            option_with_context = seq[start_minus_one*3:start*3] + option + seq[end*3:end_plus_one*3]
-            if check_re_sites(option_with_context, sites)[0] == -1 and check_homopolymer_sites(option_with_context)[0] == -1:
-                replace = option
+            if check_re_sites(option, sites)[0] == -1 and check_homopolymer_sites(option)[0] == -1:
+                replace = option 
 
-        if iters >= 100 or replace is None:
+        if iters >= 15 or replace is None:
             raise ValueError(f'Note: Failed to remove homopolymer. Seq = {seq}\nnThis usually happens due to a bad random seed choice and can often be resolved by rerunning the script.')
         
         seq = seq[:start*3] + replace + seq[(end+1)*3:]
@@ -218,13 +212,14 @@ def generate_cleaned_DNA(aa_seq, freq_cutoff=0.15):
             sites = [BsaI.site, BsmBI.site, BbsI.site, SapI.site, XbaI.site, EcoRI.site, XhoI.site, EcoRV.site, NotI.site]
             seq_minus_re = remove_restriction_sites(seq, aa_seq, sites)
             final_seq = remove_homopolymer_sites(seq_minus_re, aa_seq, sites)
-            assert check_re_sites(seq, sites)[0] == -1 and check_homopolymer_sites(seq)[0] == -1
+            assert check_re_sites(final_seq, sites)[0] == -1
+            assert check_homopolymer_sites(final_seq)[0] == -1
             break
         except Exception as e:
             tries += 1
-            if tries > 50:
+            if tries > 25:
                 print(e)
-                raise ValueError('Note: Failed to generate cleaned DNA after 50 sampling attempts.\nThis usually happens due to a bad random seed choice and can often be resolved by rerunning the script.')
+                raise ValueError('Note: Failed to generate cleaned DNA after 25 sampling attempts.\nThis usually happens due to a bad random seed choice and can often be resolved by rerunning the script.')
     
     return final_seq
 
@@ -347,8 +342,8 @@ def create_CDR3_oligo(trav_name, trbv_name, cdr3a, cdr3b, traj_name, trbj_name):
         oligo_frags['cdr3aj_seq'] = generate_cleaned_DNA(cdr3a[1:] + traj).lower()
         oligo_frags['cdr3bj_seq'] = generate_cleaned_DNA(cdr3b[1:] + trbj).lower()
         resample_count += 1
-        if resample_count > 50:
-            raise ValueError('Note: Failed to fix restriction sites in oligo junctions after 50 resampling attempts. Skipping this TCR for now.\n ' \
+        if resample_count > 25:
+            raise ValueError('Note: Failed to fix restriction sites in oligo junctions after 25 resampling attempts. Skipping this TCR for now.\n ' \
             'This usually happens due to a bad random seed choice and can often be resolved by rerunning the script. ')
         
     if resample_count > 0:
